@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_notodo/model/notodo_item.dart';
 import 'package:flutter_notodo/util/database_client.dart';
+import 'package:flutter_notodo/util/date_formatter.dart';
 
 class NotodoScreen extends StatefulWidget {
   @override
@@ -21,7 +22,7 @@ class _NotodoScreenState extends State<NotodoScreen> {
   void _handleSubmit(String text) async {
     _textEditingController.clear();
 
-    NotodoItem item = NotodoItem(text, DateTime.now().toIso8601String());
+    NotodoItem item = NotodoItem(text, dateFormatted());
     int itemId = await db.saveItem(item);
 
     NotodoItem newItem = await db.getItem(itemId);
@@ -49,7 +50,7 @@ class _NotodoScreenState extends State<NotodoScreen> {
                       color: Colors.white10,
                       child: ListTile(
                         title: _items[index],
-                        onLongPress: () => debugPrint(""),
+                        onLongPress: () => _updateItem(_items[index], index),
                         trailing: Listener(
                           key: Key(_items[index].itemName),
                           child: Icon(
@@ -130,6 +131,60 @@ class _NotodoScreenState extends State<NotodoScreen> {
     await db.deleteItem(id);
     setState(() {
       _items.removeAt(index);
+    });
+  }
+
+  _updateItem(NotodoItem item, int index) {
+    var alert = AlertDialog(
+      title: Text("Update Item"),
+      content: Row(
+        children: <Widget>[
+          Expanded(
+            child: TextField(
+              controller: _textEditingController,
+              autofocus: true,
+              decoration: InputDecoration(
+                  labelText: "Item",
+                  hintText: "eg. Don't buy stuff",
+                  icon: Icon(Icons.update)),
+            ),
+          )
+        ],
+      ),
+      actions: <Widget>[
+        FlatButton(
+            onPressed: () async {
+              NotodoItem newItem = NotodoItem.fromMap({
+                "itemName": _textEditingController.text,
+                "dateCreated": dateFormatted(),
+                "id": item.id
+              });
+
+              _handleUpdate(newItem, index);
+              Navigator.pop(context)
+            },
+            child: Text("update")),
+        FlatButton(
+            onPressed: () => Navigator.pop(context), child: Text("Cancel"))
+      ],
+    );
+    showDialog(
+        context: context,
+        builder: (_) {
+          return alert;
+        });
+  }
+
+  void _handleUpdate(NotodoItem item, int index) async {
+    setState(() {
+      _items.removeWhere((element) {
+        _items[index].itemName == item.itemName;
+      });
+    });
+
+    await db.updateItem(item);
+    setState(() {
+      _readNotodoList();
     });
   }
 }

@@ -53,7 +53,7 @@ class DatabaseHelper {
   Future<List> getItems() async {
     var dbClient = await db;
     var res = await dbClient
-        .rawQuery("SELECT * FROM $tableName ORDER BY $columnItemName ASC");
+        .rawQuery("SELECT * FROM $tableName ORDER BY $columnDateCreated DESC");
     return res;
   }
 
