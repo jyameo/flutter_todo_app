@@ -161,7 +161,7 @@ class _NotodoScreenState extends State<NotodoScreen> {
               });
 
               _handleUpdate(newItem, index);
-              Navigator.pop(context)
+              Navigator.pop(context);
             },
             child: Text("update")),
         FlatButton(
